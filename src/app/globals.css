@@ -52,8 +52,6 @@ html, body {
   color: var(--light);
   font-family: var(--font-sans);
   font-weight: 300;
-  overflow-x: hidden;
-  max-width: 100vw;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -1391,10 +1389,11 @@ ol {
   z-index: 4;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   padding: clamp(2rem, 5vw, 4rem);
   padding-bottom: clamp(2rem, 4vw, 3.5rem);
   pointer-events: none;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .footer-seq-reveal-line {
@@ -1405,16 +1404,17 @@ ol {
 }
 
 .footer-seq-title {
+  margin-top: auto;
   margin-bottom: clamp(1.8rem, 4vh, 4rem);
   pointer-events: all;
 }
 
 .footer-seq-h5 {
-  font-family: var(--font-sans);
-  font-size: clamp(2.4rem, 6vw, 6.5rem);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.6rem, 6vw, 6.5rem);
   font-weight: 300;
-  line-height: 1.06;
-  letter-spacing: -0.02em;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
   color: var(--light);
 }
 
@@ -1457,7 +1457,7 @@ ol {
   display: flex;
   gap: 0.35rem;
   align-items: baseline;
-  font-family: var(--font-sans);
+  font-family: 'Space Mono', monospace;
   font-size: 0.56rem;
   letter-spacing: 0.24em;
   text-transform: uppercase;
@@ -1466,7 +1466,7 @@ ol {
 }
 
 .footer-seq-alpha {
-  font-family: var(--font-display);
+  font-family: 'Cormorant Garamond', serif;
   font-style: italic;
   font-size: 0.8rem;
   font-weight: 300;
@@ -1474,7 +1474,7 @@ ol {
 }
 
 .footer-seq-body {
-  font-family: var(--font-sans);
+  font-family: 'Space Mono', monospace;
   font-size: 0.65rem;
   line-height: 1.9;
   color: rgba(240, 237, 230, 0.46);
@@ -1489,7 +1489,7 @@ ol {
 }
 
 .footer-seq-ulink {
-  font-family: var(--font-sans);
+  font-family: 'Space Mono', monospace;
   font-size: 0.65rem;
   letter-spacing: 0.04em;
   color: rgba(240, 237, 230, 0.62);
@@ -1533,7 +1533,7 @@ a.footer-seq-ulink:hover::after {
   border: 1px solid rgba(240, 237, 230, 0.14);
   border-right: none;
   color: var(--light);
-  font-family: var(--font-sans);
+  font-family: 'Space Mono', monospace;
   font-size: 0.62rem;
   font-weight: 300;
   padding: 0.52rem 0.75rem;
@@ -1555,7 +1555,7 @@ a.footer-seq-ulink:hover::after {
   background: var(--accent);
   border: 1px solid var(--accent);
   color: #0a0a0a;
-  font-family: var(--font-sans);
+  font-family: 'Space Mono', monospace;
   font-size: 0.56rem;
   font-weight: 700;
   letter-spacing: 0.22em;
@@ -1571,7 +1571,7 @@ a.footer-seq-ulink:hover::after {
 }
 
 .footer-seq-success {
-  font-family: var(--font-sans);
+  font-family: 'Space Mono', monospace;
   font-size: 0.6rem;
   color: var(--accent);
   letter-spacing: 0.1em;
@@ -1598,7 +1598,7 @@ a.footer-seq-ulink:hover::after {
 }
 
 .footer-nav-link {
-  font-family: var(--font-sans);
+  font-family: 'Space Mono', monospace;
   font-size: 0.55rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
