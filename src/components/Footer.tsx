@@ -9,19 +9,6 @@ function pad(n: number) {
   return String(n).padStart(3, '0')
 }
 
-const navLinks = [
-  { href: '/',         label: 'Home' },
-  { href: '/projects', label: 'Projects' },
-  { href: '/about',    label: 'About' },
-  { href: '/contact',  label: 'Contact' },
-]
-
-const socialLinks = [
-  { href: 'https://www.instagram.com/byravenmusic/', label: 'Instagram' },
-  { href: 'https://www.linkedin.com/company/byraven/', label: 'LinkedIn' },
-  { href: 'https://www.youtube.com/@byRaven',          label: 'YouTube' },
-]
-
 /* ─── Animated state shape ─── */
 interface AnimState {
   colorP:    number   // 0→1  color-wash from BW to colour
@@ -197,12 +184,10 @@ export default function Footer() {
 
             <div className="footer-seq-title" style={headStyle}>
               <h5 className="footer-seq-h5" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-                Let&rsquo;s make something
+                Let&rsquo;s make an impact together.
                 <br />
-                that moves people.
-                <br />
-                <a href="mailto:hello@byraven.com" className="footer-seq-mailto">
-                  hello@byraven.com
+                <a href="mailto:hello@madeinevolve.com" className="footer-seq-mailto">
+                  hello@madeinevolve.com
                 </a>
               </h5>
             </div>
@@ -210,40 +195,46 @@ export default function Footer() {
             <div className="footer-seq-grid" style={gridStyle}>
               <div className="footer-seq-col">
                 <div className="footer-seq-eyebrow" style={{ fontFamily: "'Space Mono', monospace" }}>
-                  <span className="footer-seq-alpha">(a.)</span> Contact
+                  <span className="footer-seq-alpha">(a.)</span> CONTACT
                 </div>
-                <p className="footer-seq-body" style={{ fontFamily: "'Space Mono', monospace" }}>
-                  hello@byraven.com<br />
-                  The Netherlands
-                </p>
+                <div className="footer-seq-body" style={{ fontFamily: "'Space Mono', monospace" }}>
+                  hello@madeinevolve.com<br />
+                  Via Rosalba Carriera, 26 | 41126 Modena (Italy)
+                </div>
                 <div className="footer-seq-links">
-                  <a href="mailto:hello@byraven.com" className="footer-seq-ulink" style={{ fontFamily: "'Space Mono', monospace" }}>
-                    Send an email
+                  <a href="https://eu1.hs-data-privacy.com/request/snVsCRNyWbjQ_TU5bILZBQ" target="_blank" rel="noopener noreferrer" className="footer-seq-ulink" style={{ fontFamily: "'Space Mono', monospace" }}>
+                    Privacy Data Removal
                   </a>
                 </div>
               </div>
 
               <div className="footer-seq-col">
                 <div className="footer-seq-eyebrow" style={{ fontFamily: "'Space Mono', monospace" }}>
-                  <span className="footer-seq-alpha">(b.)</span> Services
+                  <span className="footer-seq-alpha">(b.)</span> LEGAL
+                </div>
+                <div className="footer-seq-body" style={{ fontFamily: "'Space Mono', monospace" }}>
+                  ©2008-2026 Evolve S.r.l. P.IVA IT03497200364 // REA MO392876 Capitale Sociale: 12.000 Eur
                 </div>
                 <div className="footer-seq-links">
-                  {['Original Music','Music Production','Sonic Branding','Sound Design','Post Production'].map(s => (
-                    <span key={s} className="footer-seq-ulink" style={{ cursor: 'default', fontFamily: "'Space Mono', monospace" }}>{s}</span>
-                  ))}
+                  <Link href="/privacy-policy" className="footer-seq-ulink" style={{ fontFamily: "'Space Mono', monospace" }}>
+                    Privacy Policy
+                  </Link>
+                  <Link href="/gdpr-information" className="footer-seq-ulink" style={{ fontFamily: "'Space Mono', monospace" }}>
+                    Other Policies
+                  </Link>
                 </div>
               </div>
 
               <div className="footer-seq-col">
                 <div className="footer-seq-eyebrow" style={{ fontFamily: "'Space Mono', monospace" }}>
-                  <span className="footer-seq-alpha">(c.)</span> Newsletter
+                  <span className="footer-seq-alpha">(c.)</span> NEWSLETTER
                 </div>
-                <p className="footer-seq-body" style={{ fontFamily: "'Space Mono', monospace" }}>
-                  Stay updated on our latest work.<br />
-                  No spam — only music.
-                </p>
+                <div className="footer-seq-body" style={{ fontFamily: "'Space Mono', monospace" }}>
+                  Get eCommerce insights in your inbox.<br />
+                  No spam, just relevant stories.
+                </div>
                 {formStatus === 'success' ? (
-                  <p className="footer-seq-success" style={{ fontFamily: "'Space Mono', monospace" }}>Thank you! You&rsquo;re subscribed.</p>
+                  <p className="footer-seq-success" style={{ fontFamily: "'Space Mono', monospace" }}>Thank you! Your submission has been received!</p>
                 ) : (
                   <form id="newsletter-form" className="footer-seq-form" onSubmit={handleSubmit}>
                     <input
@@ -258,52 +249,24 @@ export default function Footer() {
                       className="footer-seq-input"
                       style={{ fontFamily: "'Space Mono', monospace" }}
                     />
-                    <button type="submit" className="footer-seq-btn" style={{ fontFamily: "'Space Mono', monospace" }}>JOIN</button>
+                    <button type="submit" className="footer-seq-btn" style={{ fontFamily: "'Space Mono', monospace" }}>JOIN NOW</button>
                   </form>
                 )}
               </div>
 
               <div className="footer-seq-col">
                 <div className="footer-seq-eyebrow" style={{ fontFamily: "'Space Mono', monospace" }}>
-                  <span className="footer-seq-alpha">(d.)</span> Follow
+                  <span className="footer-seq-alpha">(d.)</span> PRESS
                 </div>
                 <div className="footer-seq-links">
-                  {socialLinks.map(s => (
-                    <a
-                      key={s.href}
-                      href={s.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="footer-seq-ulink"
-                      style={{ fontFamily: "'Space Mono', monospace" }}
-                    >
-                      {s.label}
-                    </a>
-                  ))}
+                  <a href="https://forbes.it/2024/05/07/creativita-digitale-e-integrazione-tecnologica-unalleanza-strategica-definisce-il-futuro-digitale-di-engine" target="_blank" rel="noopener noreferrer" className="footer-seq-ulink" style={{ fontFamily: "'Space Mono', monospace" }}>Forbes</a>
+                  <a href="https://www.pambianconews.com/2022/04/01/evolve-lecommerce-agency-cresce-del-78-con-partnership-a-provvigione-342942/" target="_blank" rel="noopener noreferrer" className="footer-seq-ulink" style={{ fontFamily: "'Space Mono', monospace" }}>Pambianco News</a>
+                  <a href="https://www.pambianconews.com/2022/06/27/pollini-scommette-sullomnichannel-con-lecommerce-agency-evolve-350045/" target="_blank" rel="noopener noreferrer" className="footer-seq-ulink" style={{ fontFamily: "'Space Mono', monospace" }}>Pambianco News</a>
+                  <a href="https://forbes.it/2022/12/14/progetti-e-commerce-agency-settore-fashion" target="_blank" rel="noopener noreferrer" className="footer-seq-ulink" style={{ fontFamily: "'Space Mono', monospace" }}>Forbes</a>
+                  <div style={{ height: '0.8rem' }} />
+                  <a href="https://www.instagram.com/madeinevolve" target="_blank" rel="noopener noreferrer" className="footer-seq-ulink" style={{ fontFamily: "'Space Mono', monospace" }}>Instagram</a>
+                  <a href="https://www.linkedin.com/company/madeinevolve/" target="_blank" rel="noopener noreferrer" className="footer-seq-ulink" style={{ fontFamily: "'Space Mono', monospace" }}>Linkedin</a>
                 </div>
-              </div>
-            </div>
-
-            <div className="footer-seq-bottom" style={botStyle}>
-              <nav className="footer-nav">
-                {navLinks.map(link => (
-                  <Link key={link.href} href={link.href} className="footer-nav-link" style={{ fontFamily: "'Space Mono', monospace" }}>
-                    {link.label}
-                  </Link>
-                ))}
-              </nav>
-              <div className="footer-left">
-                <svg
-                  className="footer-logo-icon"
-                  viewBox="0 0 998 779"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M603.412 238.271L546.787 263.32L546.335 263.521L546.529 263.975L581.011 344.64L498.854 747.868L420.767 346.063L446.675 209.838L498.854 190.808L603.412 238.271Z" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M271.905 354.571L272.768 354.087L159.928 61.7441L402.059 347.097L428.325 475.869L411.417 500.358L411.257 500.591L411.373 500.849L457.426 602.599L489.747 776.827L201.442 476.791L1.96582 3.37891L271.905 354.571Z" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M796.142 476.793L507.838 776.827L540.127 602.601L586.213 500.849L586.33 500.591L586.169 500.358L569.229 475.869L595.495 347.095L837.657 61.7432L724.818 354.087L725.682 354.571L995.619 3.37891L796.142 476.793Z" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                <span className="footer-rights" style={{ fontFamily: "'Space Mono', monospace" }}>© by RAVEN — all rights reserved</span>
               </div>
             </div>
 
