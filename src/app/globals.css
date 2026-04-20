@@ -1348,9 +1348,7 @@ ol {
   width: 100%;
 }
 
-@media (max-width: 768px) {
-  .footer-tunnel { height: 350vh; }
-}
+
 
 .footer-sticky {
   position: sticky;
