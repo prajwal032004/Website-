@@ -63,7 +63,7 @@ export default function HeroSection() {
           transform: `translateY(${textY}px)`,
         }}
       >
-        <h1 className="hero-text-heading animate-float" style={{ fontSize: 'clamp(2.4rem, 7.5vw, 8rem)' }}>
+        <h1 className="hero-text-heading animate-float" style={{ fontSize: 'clamp(1.1rem, 8vw, 8rem)', maxWidth: '100%', wordWrap: 'break-word' }}>
           international music agency
         </h1>
       </div>
