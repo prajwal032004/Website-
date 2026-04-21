@@ -924,16 +924,8 @@ ol {
 .marquee-track {
   overflow: hidden;
   cursor: default;
-  -webkit-mask-image: linear-gradient(to right,
-      transparent 0%,
-      black 6%,
-      black 94%,
-      transparent 100%);
-  mask-image: linear-gradient(to right,
-      transparent 0%,
-      black 6%,
-      black 94%,
-      transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
 }
 
 .marquee-strip {
@@ -1361,371 +1353,6 @@ ol {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   FOOTER — scroll-driven image sequence
-   ─────────────────────────────────────────────────────────
-   Structure:
-     footer
-       .footer-tunnel          (500vh tall, drives scroll)
-         .footer-sticky        (sticky 100vh viewport)
-           canvas.footer-seq-canvas--bw     (z-index 1, grayscale layer)
-           canvas.footer-seq-canvas--colour (z-index 2, colour layer, clipped bottom-up)
-           .footer-seq-overlay              (z-index 3, gradient darken)
-           .footer-seq-inner                (z-index 4, all text/UI)
-             .footer-seq-reveal-line
-             .footer-seq-title
-             .footer-seq-grid  (4-col)
-             .footer-seq-bottom
-═══════════════════════════════════════════════════════════ */
-
-/* Tall scroll tunnel — provides the scrollable height */
-.footer-tunnel {
-  position: relative;
-  height: 500vh;
-  width: 100%;
-}
-
-/* Sticky viewport — pins to top for the whole scroll distance */
-.footer-sticky {
-  position: sticky;
-  top: 0;
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;
-  background: var(--dark);
-}
-
-/* ── Canvas layers ───────────────────────────────────────── */
-
-/* Both canvases fill the sticky viewport completely */
-.footer-seq-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-/* BW layer: always fully visible underneath */
-.footer-seq-canvas--bw {
-  z-index: 1;
-  filter: grayscale(1) brightness(0.65);
-}
-
-/* Colour layer: sits on top; clipped from bottom upward by JS (clipPath inline style) */
-.footer-seq-canvas--colour {
-  z-index: 2;
-  /* clip-path is applied inline by the component: inset(${waveY}% 0 0 0) */
-}
-
-/* ── Gradient overlay ────────────────────────────────────── */
-.footer-seq-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  background: linear-gradient(to bottom,
-      transparent 0%,
-      rgba(0, 0, 0, 0.06) 30%,
-      rgba(0, 0, 0, 0.55) 72%,
-      rgba(0, 0, 0, 0.88) 100%);
-  pointer-events: none;
-}
-
-/* ── Inner content container ─────────────────────────────── */
-.footer-seq-inner {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  display: flex;
-  flex-direction: column;
-  /* padding scales with viewport; bottom padding is tighter */
-  padding: clamp(2rem, 5vw, 4rem) clamp(2rem, 5vw, 4rem) clamp(1.8rem, 3.5vw, 3rem);
-  pointer-events: none;
-  /* Allow internal scrolling on tiny screens */
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* ── Reveal line ─────────────────────────────────────────── */
-/*
-  transform: scaleX(lineP)  is applied inline by the component.
-  Origin is left so it sweeps left → right.
-*/
-.footer-seq-reveal-line {
-  flex-shrink: 0;
-  height: 1px;
-  background: rgba(200, 169, 110, 0.45);
-  transform-origin: left center;
-  /* transition: none — driven by scroll, not CSS transitions */
-  margin-bottom: clamp(1rem, 2.5vh, 2.5rem);
-}
-
-/* ── Title / headline ────────────────────────────────────── */
-/*
-  opacity + translateY animated inline by component (headStyle).
-  margin-top: auto pushes title to the lower half of the sticky area,
-  just above the grid.
-*/
-.footer-seq-title {
-  margin-top: auto;
-  margin-bottom: clamp(1.5rem, 3.5vh, 3.5rem);
-  pointer-events: all;
-}
-
-.footer-seq-h5 {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(2.4rem, 5.5vw, 6rem);
-  font-weight: 300;
-  line-height: 1.06;
-  letter-spacing: -0.01em;
-  color: var(--light);
-}
-
-/* mailto link inside headline */
-.footer-seq-mailto {
-  display: inline-block;
-  margin-top: 0.5rem;
-  font-family: var(--font-sans);
-  font-size: clamp(0.78rem, 1.6vw, 1.25rem);
-  font-weight: 400;
-  letter-spacing: 0.04em;
-  color: var(--accent);
-  text-decoration: none;
-  border-bottom: 1px solid rgba(200, 169, 110, 0.28);
-  padding-bottom: 0.1rem;
-  transition: color 0.25s ease, border-color 0.25s ease;
-}
-
-.footer-seq-mailto:hover {
-  color: var(--accent-light);
-  border-color: var(--accent);
-}
-
-/* ── 4-column grid ───────────────────────────────────────── */
-/*
-  opacity + translateY animated inline by component (gridStyle).
-*/
-.footer-seq-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: clamp(1rem, 2.5vw, 2.8rem);
-  border-top: 1px solid rgba(240, 237, 230, 0.1);
-  padding-top: clamp(1rem, 2vh, 1.8rem);
-  margin-bottom: clamp(1rem, 2vh, 1.8rem);
-  pointer-events: all;
-  flex-shrink: 0;
-}
-
-.footer-seq-col {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-/* Eyebrow label above each column */
-.footer-seq-eyebrow {
-  display: flex;
-  gap: 0.35rem;
-  align-items: baseline;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.55rem;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: rgba(240, 237, 230, 0.36);
-  margin-bottom: 0.45rem;
-}
-
-/* Italic alpha character in eyebrow: (a.) (b.) etc. */
-.footer-seq-alpha {
-  font-family: 'Cormorant Garamond', serif;
-  font-style: italic;
-  font-size: 0.78rem;
-  font-weight: 300;
-  color: var(--accent);
-}
-
-/* Body copy in grid columns */
-.footer-seq-body {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.62rem;
-  line-height: 1.95;
-  color: rgba(240, 237, 230, 0.44);
-  margin-bottom: 0.4rem;
-  font-weight: 400;
-}
-
-/* Vertical link list inside column */
-.footer-seq-links {
-  display: flex;
-  flex-direction: column;
-  gap: 0.28rem;
-}
-
-/* Individual link / service label */
-.footer-seq-ulink {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.04em;
-  color: rgba(240, 237, 230, 0.6);
-  text-decoration: none;
-  width: fit-content;
-  transition: color 0.2s ease;
-  cursor: pointer;
-  position: relative;
-}
-
-/* Underline sweep on hover (only on actual <a> elements) */
-.footer-seq-ulink::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  background: currentColor;
-  transform-origin: right;
-  transform: scaleX(0);
-  transition: transform 0.5s var(--ease-in-out);
-}
-
-a.footer-seq-ulink:hover {
-  color: var(--accent);
-}
-
-a.footer-seq-ulink:hover::after {
-  transform-origin: left;
-  transform: scaleX(1);
-}
-
-/* ── Newsletter form ─────────────────────────────────────── */
-.footer-seq-form {
-  display: flex;
-  margin-top: 0.3rem;
-}
-
-.footer-seq-input {
-  flex: 1;
-  min-width: 0;
-  /* prevent flex overflow */
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(240, 237, 230, 0.13);
-  border-right: none;
-  color: var(--light);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.6rem;
-  font-weight: 400;
-  padding: 0.5rem 0.7rem;
-  outline: none;
-  letter-spacing: 0.05em;
-  transition: border-color 0.25s ease, background 0.25s ease;
-}
-
-.footer-seq-input::placeholder {
-  color: rgba(240, 237, 230, 0.24);
-}
-
-.footer-seq-input:focus {
-  border-color: rgba(200, 169, 110, 0.38);
-  background: rgba(255, 255, 255, 0.07);
-}
-
-.footer-seq-btn {
-  background: var(--accent);
-  border: 1px solid var(--accent);
-  color: #0a0a0a;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.54rem;
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  padding: 0.5rem 0.85rem;
-  cursor: pointer;
-  transition: background 0.25s ease, border-color 0.25s ease;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.footer-seq-btn:hover {
-  background: var(--accent-light);
-  border-color: var(--accent-light);
-}
-
-/* Success state for newsletter */
-.footer-seq-success {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.58rem;
-  color: var(--accent);
-  letter-spacing: 0.1em;
-  margin-top: 0.4rem;
-  border-left: 2px solid rgba(200, 169, 110, 0.36);
-  padding-left: 0.6rem;
-}
-
-/* ── Bottom bar ──────────────────────────────────────────── */
-/*
-  opacity + translateY animated inline by component (botStyle).
-*/
-.footer-seq-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-top: 1px solid rgba(240, 237, 230, 0.1);
-  padding-top: 0.85rem;
-  flex-wrap: wrap;
-  gap: 0.7rem;
-  pointer-events: all;
-  flex-shrink: 0;
-}
-
-/* Nav links row */
-.footer-nav {
-  display: flex;
-  gap: 1.4rem;
-  flex-wrap: wrap;
-}
-
-.footer-nav-link {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.53rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(240, 237, 230, 0.32);
-  text-decoration: none;
-  transition: color 0.2s ease;
-  padding: 0.25rem 0;
-}
-
-.footer-nav-link:hover {
-  color: var(--light);
-}
-
-/* Logo + copyright */
-.footer-left {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-}
-
-.footer-logo-icon {
-  width: 24px;
-  height: 19px;
-  color: rgba(240, 237, 230, 0.36);
-  transition: color 0.3s ease;
-  flex-shrink: 0;
-}
-
-.footer-logo-icon:hover {
-  color: rgba(240, 237, 230, 0.62);
-}
-
-.footer-rights {
-  font-family: var(--font-sans);
-  font-size: 0.48rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(240, 237, 230, 0.24);
-}
-
-/* ═══════════════════════════════════════════════════════════
    ABOUT PAGE
 ═══════════════════════════════════════════════════════════ */
 
@@ -2099,11 +1726,6 @@ a.footer-seq-ulink:hover::after {
   color: var(--light);
 }
 
-/* Scroll view */
-.projects-scroll-view {
-  position: relative;
-}
-
 .projects-ghost-heading {
   position: fixed;
   top: 50%;
@@ -2197,7 +1819,6 @@ a.footer-seq-ulink:hover::after {
   transform: translateX(18px);
 }
 
-/* List view */
 .projects-list-view {
   padding: 3rem 5% 6rem;
 }
@@ -2435,7 +2056,6 @@ a.footer-seq-ulink:hover::after {
   transform: rotate(180deg);
 }
 
-/* Credits */
 .project-credits-section {
   padding: 7rem 5%;
   border-top: 1px solid var(--line);
@@ -2475,7 +2095,6 @@ a.footer-seq-ulink:hover::after {
   color: var(--light);
 }
 
-/* More work */
 .more-work-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2541,11 +2160,6 @@ a.footer-seq-ulink:hover::after {
 ═══════════════════════════════════════════════════════════ */
 
 @media (max-width: 1100px) {
-  .footer-seq-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: clamp(1rem, 2vw, 2rem);
-  }
-
   .awards_item_info_wrapper {
     grid-template-columns: 1.2fr 70px 130px 1fr;
     gap: 1.2rem;
@@ -2590,10 +2204,6 @@ a.footer-seq-ulink:hover::after {
     display: none;
   }
 
-  .footer-seq-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
   .project-floating-card {
     left: 4%;
     right: 4%;
@@ -2636,7 +2246,7 @@ a.footer-seq-ulink:hover::after {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   RESPONSIVE — 560px  (mobile)
+   RESPONSIVE — 560px (mobile)
 ═══════════════════════════════════════════════════════════ */
 
 @media (max-width: 560px) {
@@ -2666,62 +2276,6 @@ a.footer-seq-ulink:hover::after {
     padding: 5rem 6%;
   }
 
-  /* Footer — mobile overrides */
-  .footer-seq-inner {
-    padding: 4rem 6% 2rem;
-    justify-content: flex-start;
-    gap: 2rem;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .footer-seq-title {
-    margin-top: 0;
-    margin-bottom: 0.5rem;
-  }
-
-  .footer-seq-h5 {
-    font-size: 1.8rem !important;
-    line-height: 1.14 !important;
-    letter-spacing: -0.02em !important;
-  }
-
-  .footer-seq-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
-  .footer-seq-body {
-    font-size: 0.65rem;
-  }
-
-  .footer-seq-eyebrow {
-    font-size: 0.54rem;
-  }
-
-  .footer-seq-ulink {
-    font-size: 0.7rem;
-  }
-
-  .footer-seq-bottom {
-    flex-direction: column-reverse;
-    align-items: flex-start;
-    gap: 1.6rem;
-    padding-top: 1.8rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .footer-nav {
-    flex-wrap: wrap;
-    gap: 0.65rem;
-  }
-
-  .footer-left {
-    gap: 0.75rem;
-    align-items: center;
-  }
-
-  /* Awards */
   .awards_item_info_wrapper {
     grid-template-columns: 1fr;
     gap: 0.4rem;
@@ -2737,7 +2291,6 @@ a.footer-seq-ulink:hover::after {
     font-size: clamp(2rem, 12vw, 3.5rem);
   }
 
-  /* Services */
   .dynamic-heading {
     font-size: clamp(2.2rem, 12vw, 4rem);
     padding: 1.5rem 0;
@@ -2752,7 +2305,6 @@ a.footer-seq-ulink:hover::after {
     font-size: 0.85rem;
   }
 
-  /* Projects */
   .featured_project_info_name {
     font-size: clamp(1.8rem, 10vw, 4rem);
   }
@@ -2762,7 +2314,6 @@ a.footer-seq-ulink:hover::after {
     padding: 0 5% 4rem;
   }
 
-  /* Project detail */
   .project-floating-card {
     bottom: 6%;
     padding: 1.2rem;
@@ -2778,7 +2329,6 @@ a.footer-seq-ulink:hover::after {
     gap: 1rem;
   }
 
-  /* Contact */
   .contact-page {
     padding: 8rem 6% 4rem;
   }
@@ -2793,12 +2343,10 @@ a.footer-seq-ulink:hover::after {
     text-align: center;
   }
 
-  /* Team */
   .team-grid {
     grid-template-columns: 1fr;
   }
 
-  /* Marquee */
   .marquee-card {
     width: 240px;
   }
