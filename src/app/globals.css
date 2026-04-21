@@ -54,6 +54,8 @@ html, body {
   font-weight: 300;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 a {
@@ -1016,7 +1018,7 @@ ol {
 
 .dynamic-heading {
   font-family: var(--font-sans);
-  font-size: clamp(4rem, 15vw, 13rem);
+  font-size: clamp(2.4rem, 15vw, 13rem);
   font-weight: 300;
   text-transform: uppercase;
   letter-spacing: -0.055em;
@@ -1173,7 +1175,7 @@ ol {
 
 .awards_title {
   font-family: var(--font-sans);
-  font-size: clamp(4rem, 14vw, 13rem);
+  font-size: clamp(2.4rem, 14vw, 13rem);
   font-weight: 300;
   text-transform: uppercase;
   letter-spacing: -0.05em;
@@ -1773,7 +1775,7 @@ a.footer-seq-ulink:hover::after {
 
 .contact-heading {
   font-family: var(--font-sans);
-  font-size: clamp(4rem, 13vw, 11rem);
+  font-size: clamp(2.4rem, 13vw, 11rem);
   font-weight: 300;
   text-transform: uppercase;
   letter-spacing: -0.046em;
@@ -2278,6 +2280,10 @@ a.footer-seq-ulink:hover::after {
   .more-work-grid { grid-template-columns: 1fr; padding: 0 5% 4rem; }
   .credits-grid-inner { grid-template-columns: 1fr; gap: 1rem; }
   .awards_section { padding: 5rem 6% 3rem; }
+  .awards_title { text-align: center; margin-bottom: 3rem; font-size: clamp(2.2rem, 12vw, 4rem); }
+  .dynamic-heading { font-size: clamp(2.2rem, 12vw, 4rem); padding: 2rem 0; }
+  .featured_project_info_name { font-size: clamp(1.8rem, 10vw, 4rem); }
+  .oursound-text { font-size: clamp(1.8rem, 11vw, 4rem); white-space: normal; line-height: 1.1; }
   .footer-seq-body { font-size: 0.65rem; }
   .footer-seq-eyebrow { font-size: 0.55rem; }
   .footer-seq-ulink { font-size: 0.72rem; }
