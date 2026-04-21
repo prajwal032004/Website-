@@ -3,11 +3,9 @@
 import Link from 'next/link'
 import { useRef, useEffect, useState, useCallback } from 'react'
 
-// ─── CONFIG ────────────────────────────────────────────────────────────────
+// ─── CONFIG ─────────────────────────────────────────────────────────────────
 const TOTAL_FRAMES = 80
-const SCROLL_MULTIPLIER = 0  // tunnel = SCROLL_MULTIPLIER × 100vh
-// 3 = ~27px/frame  4 = ~36px/frame  5 = ~45px/frame
-// ───────────────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────────────────
 
 function pad(n: number) {
   return String(n).padStart(3, '0')
@@ -21,20 +19,10 @@ const navLinks = [
 ]
 
 const socialLinks = [
-  { href: 'https://www.instagram.com/byravenmusic/', label: 'Instagram' },
+  { href: 'https://www.instagram.com/byraven/', label: 'Instagram' },
   { href: 'https://www.linkedin.com/company/byraven/', label: 'LinkedIn' },
   { href: 'https://www.youtube.com/@byRaven', label: 'YouTube' },
 ]
-
-interface AnimState {
-  colorP: number
-  lineP: number
-  headP: number
-  gridP: number
-  botP: number
-}
-
-const INIT_ANIM: AnimState = { colorP: 0, lineP: 0, headP: 0, gridP: 0, botP: 0 }
 
 function ease(t: number): number {
   return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
@@ -44,9 +32,16 @@ function seg(raw: number, lo: number, hi: number): number {
   return ease(Math.min(Math.max((raw - lo) / (hi - lo), 0), 1))
 }
 
+interface AnimState {
+  lineP: number
+  headP: number
+  gridP: number
+  botP: number
+}
+const INIT_ANIM: AnimState = { lineP: 0, headP: 0, gridP: 0, botP: 0 }
+
 export default function Footer() {
-  const wrapRef = useRef<HTMLDivElement>(null)   // outer scrollable wrapper (tall)
-  const stickyRef = useRef<HTMLDivElement>(null)   // sticky panel (100vh)
+  const footerRef = useRef<HTMLElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const bwCanvasRef = useRef<HTMLCanvasElement>(null)
   const imagesRef = useRef<HTMLImageElement[]>([])
@@ -56,8 +51,9 @@ export default function Footer() {
   const [formStatus, setFormStatus] = useState<'idle' | 'success'>('idle')
   const [email, setEmail] = useState('')
   const [anim, setAnim] = useState<AnimState>(INIT_ANIM)
+  const [colorP, setColorP] = useState(0)
 
-  // ── Draw a single frame on both canvases ─────────────────────────────────
+  // ── Draw a single frame on both canvases ────────────────────────────────
   const drawFrame = useCallback((index: number) => {
     const col = canvasRef.current
     const bw = bwCanvasRef.current
@@ -81,7 +77,7 @@ export default function Footer() {
     bwCtx.drawImage(img, sx, sy, sw, sh)
   }, [])
 
-  // ── Preload all frames ────────────────────────────────────────────────────
+  // ── Preload all frames ───────────────────────────────────────────────────
   useEffect(() => {
     const imgs: HTMLImageElement[] = []
     for (let i = 1; i <= TOTAL_FRAMES; i++) {
@@ -93,31 +89,23 @@ export default function Footer() {
     imagesRef.current = imgs
   }, [drawFrame])
 
-  // ── Core: scroll position → frame index + UI progress ────────────────────
+  // ── Scroll → frame index + UI reveals ───────────────────────────────────
   useEffect(() => {
     function onScroll() {
-      const wrap = wrapRef.current
-      if (!wrap) return
+      const footer = footerRef.current
+      if (!footer) return
 
-      // getBoundingClientRect gives position relative to viewport
-      const rect = wrap.getBoundingClientRect()
-      const vh = window.innerHeight
+      const rect = footer.getBoundingClientRect()
+      const wh = window.innerHeight
+      const fh = footer.offsetHeight
 
-      // Total px we can scroll within this wrapper
-      // wrap is (SCROLL_MULTIPLIER * vh) tall, sticky panel is (1 * vh)
-      // so scrollable travel = (SCROLL_MULTIPLIER - 1) * vh
-      const scrollable = wrap.offsetHeight - vh
+      // raw = 0  →  footer top just enters viewport from bottom
+      // raw = 1  →  footer bottom has scrolled fully past viewport top
+      const total = wh + fh
+      const gone = wh - rect.top
+      const raw = Math.min(Math.max(gone / total, 0), 1)
 
-      // scrolled = 0 when wrap top aligns with viewport top
-      //          = scrollable when wrap bottom aligns with viewport bottom
-      const scrolled = Math.min(Math.max(-rect.top, 0), scrollable)
-
-      // raw: 0.0 → 1.0 perfectly mapped across the entire scroll travel
-      const raw = scrollable > 0 ? scrolled / scrollable : 0
-
-      // ── Image sequence ──────────────────────────────────────────────────
-      // Frames play across 0.0 → 0.65 of scroll
-      // UI overlays appear across 0.55 → 1.0 (slight overlap = nice feel)
+      // Frames advance over first 65% of the scroll window
       const imgRaw = Math.min(raw / 0.65, 1)
       const target = Math.min(Math.round(imgRaw * (TOTAL_FRAMES - 1)), TOTAL_FRAMES - 1)
 
@@ -127,28 +115,30 @@ export default function Footer() {
         rafRef.current = requestAnimationFrame(() => drawFrame(target))
       }
 
-      // ── UI overlays ─────────────────────────────────────────────────────
+      // Colour wash follows frame progress
+      setColorP(seg(raw, 0.0, 0.6))
+
+      // UI elements stagger in during the middle portion
       setAnim({
-        colorP: seg(raw, 0.00, 0.65),   // colour wash follows image exactly
-        lineP: seg(raw, 0.55, 0.72),   // reveal line
-        headP: seg(raw, 0.60, 0.78),   // headline
-        gridP: seg(raw, 0.68, 0.86),   // 4-col grid
-        botP: seg(raw, 0.76, 0.93),   // bottom bar
+        lineP: seg(raw, 0.28, 0.48),
+        headP: seg(raw, 0.36, 0.56),
+        gridP: seg(raw, 0.44, 0.64),
+        botP: seg(raw, 0.52, 0.70),
       })
     }
 
     window.addEventListener('scroll', onScroll, { passive: true })
-    onScroll() // run once on mount to handle page-restored scroll positions
+    onScroll()
     return () => window.removeEventListener('scroll', onScroll)
   }, [drawFrame])
 
-  // ── Resize canvases to match sticky panel ────────────────────────────────
+  // ── Resize canvases whenever footer dimensions change ────────────────────
   useEffect(() => {
     function resize() {
-      const sticky = stickyRef.current
-      if (!sticky) return
-      const w = sticky.clientWidth
-      const h = sticky.clientHeight
+      const footer = footerRef.current
+      if (!footer) return
+      const w = footer.clientWidth
+      const h = footer.clientHeight
         ;[canvasRef.current, bwCanvasRef.current].forEach(c => {
           if (!c) return
           c.width = w
@@ -167,335 +157,465 @@ export default function Footer() {
     setTimeout(() => setFormStatus('success'), 600)
   }
 
-  const { colorP, lineP, headP, gridP, botP } = anim
-  const waveY = Math.round((1 - colorP) * 100)
+  const { lineP, headP, gridP, botP } = anim
+
+  // Colour canvas clips in from the bottom — driven purely by scroll
+  const clipTop = Math.round((1 - colorP) * 100)
 
   const headStyle: React.CSSProperties = {
-    transform: `translateY(${(1 - headP) * 36}px)`,
+    transform: `translateY(${(1 - headP) * 32}px)`,
+    opacity: headP,
     transition: 'none',
   }
   const gridStyle: React.CSSProperties = {
-    transform: `translateY(${(1 - gridP) * 24}px)`,
+    transform: `translateY(${(1 - gridP) * 20}px)`,
     transition: 'none',
   }
   const botStyle: React.CSSProperties = {
-    transform: `translateY(${(1 - botP) * 18}px)`,
+    transform: `translateY(${(1 - botP) * 14}px)`,
     transition: 'none',
   }
 
   return (
     <>
       <style>{`
-        .seq-wrap {
+        /* ── Footer root — normal flow, no sticky wrapper ────────────── */
+        .ft-root {
           position: relative;
           width: 100%;
-          height: ${SCROLL_MULTIPLIER * 100}vh;
-        }
-
-        .seq-sticky {
-          position: sticky;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100vh;
+          min-height: 100svh;
           overflow: hidden;
-          background: var(--dark, #0a0a0a);
+          background: #0a0a0a;
         }
 
-        /* ── Canvases ── */
-        .seq-canvas {
+        /* ── Canvases ────────────────────────────────────────────────── */
+        .ft-canvas {
           position: absolute;
           inset: 0;
           width: 100%;
           height: 100%;
           display: block;
+          pointer-events: none;
         }
-        .seq-canvas--bw {
+        .ft-canvas--bw {
           z-index: 1;
-          filter: grayscale(1) brightness(0.5);
+          filter: grayscale(1) brightness(0.46);
         }
-        .seq-canvas--colour {
+        .ft-canvas--colour {
           z-index: 2;
         }
 
-        /* ── Dark gradient overlay ── */
-        .seq-overlay {
+        /* ── Dark gradient scrim ─────────────────────────────────────── */
+        .ft-overlay {
           position: absolute;
           inset: 0;
           z-index: 3;
           background: linear-gradient(
             to bottom,
             transparent 0%,
-            rgba(0,0,0,0.05) 30%,
-            rgba(0,0,0,0.55) 68%,
-            rgba(0,0,0,0.96) 100%
+            rgba(0,0,0,0.04) 28%,
+            rgba(0,0,0,0.55) 65%,
+            rgba(0,0,0,0.97) 100%
           );
           pointer-events: none;
         }
 
-        /* ── Footer content layer ── */
-        .seq-inner {
-          position: absolute;
-          inset: 0;
+        /* ── Content layer ───────────────────────────────────────────── */
+        .ft-inner {
+          position: relative;
           z-index: 4;
           display: flex;
           flex-direction: column;
+          min-height: 100svh;
           padding: clamp(2rem, 5vw, 4rem) clamp(2rem, 6vw, 5rem) clamp(1.8rem, 4vw, 3rem);
           pointer-events: none;
-          overflow: hidden;
         }
 
-        /* ── Reveal line ── */
-        .f-reveal-line {
+        /* ── Reveal line ─────────────────────────────────────────────── */
+        .ft-line {
           flex-shrink: 0;
           height: 1px;
-          background: linear-gradient(to right, var(--accent, #c8a96e) 0%, rgba(200,169,110,0.08) 100%);
+          background: linear-gradient(
+            to right,
+            #c8a96e 0%,
+            rgba(200, 169, 110, 0.05) 100%
+          );
           transform-origin: left center;
-          margin-bottom: clamp(1rem, 2.5vh, 2.5rem);
+          margin-bottom: clamp(1rem, 2vw, 2.5rem);
         }
 
-        /* ── Headline ── */
-        .f-title {
-          margin-top: auto;
-          margin-bottom: clamp(1.5rem, 4vh, 3.5rem);
+        .ft-spacer { flex: 1; }
+
+        /* ── Headline ────────────────────────────────────────────────── */
+        .ft-title {
+          margin-bottom: clamp(1.5rem, 3vw, 3.5rem);
           pointer-events: all;
         }
-        .f-h5 {
-          font-family: var(--font-display);
-          font-size: clamp(2.4rem, 6vw, 6.5rem);
+        .ft-h5 {
+          font-family: 'PP Editorial New', 'Cormorant Garamond', Georgia, serif;
+          font-size: clamp(2.2rem, 5.6vw, 6rem);
           font-weight: 300;
-          line-height: 1.05;
+          line-height: 1.06;
           letter-spacing: -0.015em;
-          color: var(--light, #f0ede6);
+          color: #f0ede6;
+          margin: 0;
         }
-        .f-mailto {
+        .ft-mailto {
           display: inline-block;
-          margin-top: 0.6rem;
-          font-family: var(--font-sans);
-          font-size: clamp(0.75rem, 1.6vw, 1.2rem);
+          margin-top: 0.65rem;
+          font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+          font-size: clamp(0.72rem, 1.4vw, 1.1rem);
           font-weight: 400;
-          letter-spacing: 0.05em;
-          color: var(--accent, #c8a96e);
+          letter-spacing: 0.055em;
+          color: #c8a96e;
           text-decoration: none;
-          border-bottom: 1px solid rgba(200,169,110,0.25);
+          border-bottom: 1px solid rgba(200, 169, 110, 0.28);
           padding-bottom: 0.1rem;
           transition: color 0.3s, border-color 0.3s;
         }
-        .f-mailto:hover { color: var(--accent-light, #dfc28e); border-color: var(--accent, #c8a96e); }
+        .ft-mailto:hover {
+          color: #dfc28e;
+          border-color: #c8a96e;
+        }
 
-        /* ── 4-col grid ── */
-        .f-grid {
+        /* ── 4-column info grid ──────────────────────────────────────── */
+        .ft-grid {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
           gap: clamp(1rem, 3vw, 3.5rem);
-          border-top: 1px solid rgba(240,237,230,0.1);
-          padding-top: clamp(1.2rem, 2.5vh, 2rem);
-          margin-bottom: clamp(1.2rem, 2.5vh, 2.5rem);
+          border-top: 1px solid rgba(240, 237, 230, 0.1);
+          padding-top: clamp(1.2rem, 2vw, 2rem);
+          margin-bottom: clamp(1.2rem, 2vw, 2.5rem);
           pointer-events: all;
           flex-shrink: 0;
         }
-        .f-col { display: flex; flex-direction: column; gap: 0.5rem; }
-        .f-eyebrow {
-          display: flex; gap: 0.35rem; align-items: baseline;
-          font-family: var(--font-mono);
-          font-size: 0.55rem; letter-spacing: 0.28em; text-transform: uppercase;
-          color: rgba(240,237,230,0.35); margin-bottom: 0.5rem;
+        .ft-col {
+          display: flex;
+          flex-direction: column;
+          gap: 0.45rem;
         }
-        .f-alpha {
-          font-family: var(--font-display); font-style: italic;
-          font-size: 0.8rem; font-weight: 300; color: var(--accent, #c8a96e);
+        .ft-eyebrow {
+          display: flex;
+          gap: 0.35rem;
+          align-items: baseline;
+          font-family: 'Geist Mono', monospace;
+          font-size: 0.54rem;
+          letter-spacing: 0.3em;
+          text-transform: uppercase;
+          color: rgba(240, 237, 230, 0.28);
+          margin-bottom: 0.5rem;
         }
-        .f-body {
-          font-family: var(--font-mono); font-size: 0.62rem;
-          line-height: 2; color: rgba(240,237,230,0.45); margin-bottom: 0.4rem;
+        .ft-alpha {
+          font-family: 'PP Editorial New', Georgia, serif;
+          font-style: italic;
+          font-size: 0.82rem;
+          font-weight: 300;
+          color: #c8a96e;
         }
-        .f-links { display: flex; flex-direction: column; gap: 0.35rem; }
-        .f-ulink {
-          font-family: var(--font-mono); font-size: 0.62rem;
-          letter-spacing: 0.04em; color: rgba(240,237,230,0.65);
-          text-decoration: none; width: fit-content;
-          transition: color 0.25s; position: relative;
+        .ft-body {
+          font-family: 'Geist Mono', monospace;
+          font-size: 0.61rem;
+          line-height: 2;
+          color: rgba(240, 237, 230, 0.4);
+          margin-bottom: 0.3rem;
         }
-        .f-ulink::after {
-          content: ''; position: absolute; bottom: -1px; left: 0;
-          width: 100%; height: 1px; background: currentColor;
-          transform: scaleX(0); transform-origin: right;
-          transition: transform 0.45s cubic-bezier(0.65,0,0.35,1);
+        .ft-links {
+          display: flex;
+          flex-direction: column;
+          gap: 0.32rem;
         }
-        a.f-ulink:hover { color: var(--accent, #c8a96e); }
-        a.f-ulink:hover::after { transform: scaleX(1); transform-origin: left; }
+        .ft-ulink {
+          font-family: 'Geist Mono', monospace;
+          font-size: 0.61rem;
+          letter-spacing: 0.04em;
+          color: rgba(240, 237, 230, 0.6);
+          text-decoration: none;
+          width: fit-content;
+          position: relative;
+          transition: color 0.25s;
+        }
+        .ft-ulink::after {
+          content: '';
+          position: absolute;
+          bottom: -1px;
+          left: 0;
+          width: 100%;
+          height: 1px;
+          background: currentColor;
+          transform: scaleX(0);
+          transform-origin: right;
+          transition: transform 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+        a.ft-ulink:hover { color: #c8a96e; }
+        a.ft-ulink:hover::after { transform: scaleX(1); transform-origin: left; }
 
-        /* ── Newsletter form ── */
-        .f-form { display: flex; margin-top: 0.4rem; }
-        .f-input {
-          flex: 1; min-width: 0;
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(240,237,230,0.1); border-right: none;
-          color: var(--light, #f0ede6); font-family: var(--font-mono);
-          font-size: 0.6rem; padding: 0.55rem 0.8rem; outline: none;
+        /* Newsletter form */
+        .ft-form { display: flex; margin-top: 0.4rem; }
+        .ft-input {
+          flex: 1;
+          min-width: 0;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(240, 237, 230, 0.1);
+          border-right: none;
+          color: #f0ede6;
+          font-family: 'Geist Mono', monospace;
+          font-size: 0.6rem;
+          padding: 0.55rem 0.8rem;
+          outline: none;
           transition: border-color 0.3s, background 0.3s;
         }
-        .f-input:focus { border-color: rgba(200,169,110,0.4); background: rgba(255,255,255,0.06); }
-        .f-btn {
-          background: var(--accent, #c8a96e); border: 1px solid var(--accent, #c8a96e);
-          color: #000; font-family: var(--font-mono); font-size: 0.55rem;
-          font-weight: 700; letter-spacing: 0.2em; padding: 0.55rem 1.1rem;
-          cursor: pointer; transition: background 0.3s, border-color 0.3s;
+        .ft-input::placeholder { color: rgba(240, 237, 230, 0.22); }
+        .ft-input:focus {
+          border-color: rgba(200, 169, 110, 0.4);
+          background: rgba(255, 255, 255, 0.06);
         }
-        .f-btn:hover { background: var(--accent-light, #dfc28e); border-color: var(--accent-light, #dfc28e); }
-
-        /* ── Bottom bar ── */
-        .f-bottom {
-          display: flex; align-items: center; justify-content: space-between;
-          border-top: 1px solid rgba(240,237,230,0.1); padding-top: 1.2rem;
-          flex-wrap: wrap; gap: 1rem; pointer-events: all; flex-shrink: 0;
+        .ft-btn {
+          background: #c8a96e;
+          border: 1px solid #c8a96e;
+          color: #0a0a0a;
+          font-family: 'Geist Mono', monospace;
+          font-size: 0.54rem;
+          font-weight: 700;
+          letter-spacing: 0.22em;
+          padding: 0.55rem 1.1rem;
+          cursor: pointer;
+          transition: background 0.3s, border-color 0.3s;
         }
-        .f-nav { display: flex; gap: 1.8rem; }
-        .f-nav-link {
-          font-family: var(--font-mono); font-size: 0.55rem;
-          letter-spacing: 0.22em; text-transform: uppercase;
-          color: rgba(240,237,230,0.35); text-decoration: none; transition: color 0.3s;
-        }
-        .f-nav-link:hover { color: var(--light, #f0ede6); }
-        .f-left { display: flex; align-items: center; gap: 0.8rem; }
-        .f-logo-icon { width: 22px; height: 18px; color: rgba(240,237,230,0.4); transition: color 0.3s; }
-        .f-logo-icon:hover { color: var(--accent, #c8a96e); }
-        .f-rights {
-          font-family: var(--font-sans); font-size: 0.48rem;
-          letter-spacing: 0.16em; text-transform: uppercase; color: rgba(240,237,230,0.25);
+        .ft-btn:hover { background: #dfc28e; border-color: #dfc28e; }
+        .ft-success {
+          font-family: 'Geist Mono', monospace;
+          font-size: 0.61rem;
+          color: #c8a96e;
+          margin-top: 0.4rem;
         }
 
-        /* ── Responsive ── */
+        /* ── Bottom bar ──────────────────────────────────────────────── */
+        .ft-bottom {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          border-top: 1px solid rgba(240, 237, 230, 0.1);
+          padding-top: 1.2rem;
+          flex-wrap: wrap;
+          gap: 1rem;
+          pointer-events: all;
+          flex-shrink: 0;
+        }
+        .ft-nav { display: flex; gap: 1.8rem; }
+        .ft-nav-link {
+          font-family: 'Geist Mono', monospace;
+          font-size: 0.54rem;
+          letter-spacing: 0.24em;
+          text-transform: uppercase;
+          color: rgba(240, 237, 230, 0.3);
+          text-decoration: none;
+          transition: color 0.3s;
+        }
+        .ft-nav-link:hover { color: #f0ede6; }
+        .ft-right { display: flex; align-items: center; gap: 0.85rem; }
+        .ft-logo-icon {
+          width: 22px;
+          height: 18px;
+          color: rgba(240, 237, 230, 0.36);
+          transition: color 0.3s;
+          flex-shrink: 0;
+        }
+        .ft-logo-icon:hover { color: #c8a96e; }
+        .ft-rights {
+          font-family: 'Geist Mono', monospace;
+          font-size: 0.47rem;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: rgba(240, 237, 230, 0.2);
+        }
+
+        /* ── Responsive ──────────────────────────────────────────────── */
         @media (max-width: 1100px) {
-          .f-grid { grid-template-columns: repeat(2,1fr); gap: 2rem; }
+          .ft-grid { grid-template-columns: repeat(2, 1fr); gap: 2rem; }
         }
-        @media (max-width: 600px) {
-          .seq-wrap { height: ${Math.round(SCROLL_MULTIPLIER * 100 * 0.7)}vh; }
-          .seq-inner { padding: 3rem 7% 2rem; }
-          .f-h5 { font-size: 1.85rem !important; line-height: 1.14 !important; }
-          .f-grid { grid-template-columns: 1fr; gap: 1.8rem; }
-          .f-title { margin-top: 0; margin-bottom: 0.8rem; }
-          .f-bottom { flex-direction: column-reverse; align-items: flex-start; gap: 1.8rem; padding-top: 2rem; }
-          .f-nav { flex-wrap: wrap; gap: 1rem; }
+        @media (max-width: 640px) {
+          .ft-inner { padding: 3rem 7% 2rem; }
+          .ft-h5    { font-size: 1.8rem !important; line-height: 1.15 !important; }
+          .ft-grid  { grid-template-columns: 1fr; gap: 1.8rem; }
+          .ft-title { margin-bottom: 0.8rem; }
+          .ft-bottom {
+            flex-direction: column-reverse;
+            align-items: flex-start;
+            gap: 1.8rem;
+            padding-top: 2rem;
+          }
+          .ft-nav { flex-wrap: wrap; gap: 1rem; }
         }
       `}</style>
 
-      <footer>
-        {/*
-          STRUCTURE (mirrors the reference):
-            <div class="seq-wrap">          ← provides scroll height, position:relative
-              <div class="seq-sticky">      ← position:sticky, top:0, height:100vh
-                <canvas bw />               ← grayscale base
-                <canvas colour />           ← colour, clipped from bottom
-                <div overlay />
-                <div inner>                 ← all footer content
-        */}
-        <div className="seq-wrap" ref={wrapRef}>
-          <div className="seq-sticky" ref={stickyRef}>
+      {/*
+        The footer is a normal block element in the page flow.
+        No sticky wrapper, no extra scroll height.
+        The two canvases are absolutely positioned inside it and
+        resize to match the footer's natural height.
+        Frame index and UI reveals are driven by how far the footer
+        has scrolled through the viewport.
+      */}
+      <footer className="ft-root" ref={footerRef}>
 
-            {/* Grayscale base — always fully visible */}
-            <canvas ref={bwCanvasRef} className="seq-canvas seq-canvas--bw" />
+        {/* Grayscale base — always fully drawn */}
+        <canvas ref={bwCanvasRef} className="ft-canvas ft-canvas--bw" />
 
-            {/* Colour layer — clips in from bottom as scroll progresses */}
-            <canvas
-              ref={canvasRef}
-              className="seq-canvas seq-canvas--colour"
-              style={{ clipPath: `inset(${waveY}% 0 0 0)` }}
-            />
+        {/* Colour layer — clips in from the bottom as user scrolls down */}
+        <canvas
+          ref={canvasRef}
+          className="ft-canvas ft-canvas--colour"
+          style={{ clipPath: `inset(${clipTop}% 0 0 0)` }}
+        />
 
-            <div className="seq-overlay" />
+        {/* Dark gradient scrim */}
+        <div className="ft-overlay" />
 
-            <div className="seq-inner">
-              {/* Reveal line */}
-              <div
-                className="f-reveal-line"
-                style={{ transform: `scaleX(${lineP})`, transition: 'none' }}
-              />
+        {/* All footer content */}
+        <div className="ft-inner">
 
-              <div style={{ flex: 1 }} />
+          {/* Horizontal reveal line */}
+          <div
+            className="ft-line"
+            style={{
+              transform: `scaleX(${lineP})`,
+              opacity: lineP,
+              transition: 'none',
+            }}
+          />
 
-              {/* Headline */}
-              <div className="f-title" style={headStyle}>
-                <h5 className="f-h5">
-                  Let&rsquo;s make something
-                  <br />
-                  that moves people.
-                  <br />
-                  <a href="mailto:hello@byraven.com" className="f-mailto">
-                    hello@byraven.com
+          <div className="ft-spacer" />
+
+          {/* Headline + email */}
+          <div className="ft-title" style={headStyle}>
+            <h5 className="ft-h5">
+              Let&rsquo;s make something<br />
+              that moves people.<br />
+              <a href="mailto:hello@byraven.com" className="ft-mailto">
+                hello@byraven.com
+              </a>
+            </h5>
+          </div>
+
+          {/* 4-column info grid */}
+          <div className="ft-grid" style={gridStyle}>
+
+            {/* (a.) Contact */}
+            <div className="ft-col">
+              <div className="ft-eyebrow">
+                <span className="ft-alpha">(a.)</span> Contact
+              </div>
+              <p className="ft-body">
+                hello@byraven.com<br />
+                The Netherlands
+              </p>
+              <div className="ft-links">
+                <a href="mailto:hello@byraven.com" className="ft-ulink">
+                  Send an email
+                </a>
+              </div>
+            </div>
+
+            {/* (b.) Services */}
+            <div className="ft-col">
+              <div className="ft-eyebrow">
+                <span className="ft-alpha">(b.)</span> Services
+              </div>
+              <div className="ft-links">
+                {[
+                  'Original Music',
+                  'Music Production',
+                  'Sonic Branding',
+                  'Sound Design',
+                  'Post Production',
+                ].map(s => (
+                  <span key={s} className="ft-ulink" style={{ cursor: 'default' }}>
+                    {s}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* (c.) Newsletter */}
+            <div className="ft-col">
+              <div className="ft-eyebrow">
+                <span className="ft-alpha">(c.)</span> Newsletter
+              </div>
+              <p className="ft-body">
+                Stay updated on our latest work.<br />No spam.
+              </p>
+              {formStatus === 'success' ? (
+                <p className="ft-success">Thank you! You&rsquo;re subscribed.</p>
+              ) : (
+                <form className="ft-form" onSubmit={handleSubmit}>
+                  <input
+                    type="email"
+                    placeholder="enter your email"
+                    required
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    className="ft-input"
+                  />
+                  <button type="submit" className="ft-btn">JOIN</button>
+                </form>
+              )}
+            </div>
+
+            {/* (d.) Follow */}
+            <div className="ft-col">
+              <div className="ft-eyebrow">
+                <span className="ft-alpha">(d.)</span> Follow
+              </div>
+              <div className="ft-links">
+                {socialLinks.map(s => (
+                  <a
+                    key={s.href}
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ft-ulink"
+                  >
+                    {s.label}
                   </a>
-                </h5>
+                ))}
               </div>
+            </div>
+          </div>
 
-              {/* 4-col info grid */}
-              <div className="f-grid" style={gridStyle}>
-                <div className="f-col">
-                  <div className="f-eyebrow"><span className="f-alpha">(a.)</span> Contact</div>
-                  <p className="f-body">hello@byraven.com<br />The Netherlands</p>
-                  <div className="f-links">
-                    <a href="mailto:hello@byraven.com" className="f-ulink">Send an email</a>
-                  </div>
-                </div>
+          {/* Bottom bar */}
+          <div className="ft-bottom" style={botStyle}>
+            <nav className="ft-nav">
+              {navLinks.map(link => (
+                <Link key={link.href} href={link.href} className="ft-nav-link">
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
 
-                <div className="f-col">
-                  <div className="f-eyebrow"><span className="f-alpha">(b.)</span> Services</div>
-                  <div className="f-links">
-                    {['Original Music', 'Music Production', 'Sonic Branding', 'Sound Design', 'Post Production'].map(s => (
-                      <span key={s} className="f-ulink" style={{ cursor: 'default' }}>{s}</span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="f-col">
-                  <div className="f-eyebrow"><span className="f-alpha">(c.)</span> Newsletter</div>
-                  <p className="f-body">Stay updated on our latest work.<br />No spam.</p>
-                  {formStatus === 'success' ? (
-                    <p className="f-body" style={{ color: 'var(--accent, #c8a96e)' }}>
-                      Thank you! You&rsquo;re subscribed.
-                    </p>
-                  ) : (
-                    <form className="f-form" onSubmit={handleSubmit}>
-                      <input
-                        type="email"
-                        placeholder="enter your email"
-                        required
-                        value={email}
-                        onChange={e => setEmail(e.target.value)}
-                        className="f-input"
-                      />
-                      <button type="submit" className="f-btn">JOIN</button>
-                    </form>
-                  )}
-                </div>
-
-                <div className="f-col">
-                  <div className="f-eyebrow"><span className="f-alpha">(d.)</span> Follow</div>
-                  <div className="f-links">
-                    {socialLinks.map(s => (
-                      <a key={s.href} href={s.href} target="_blank" rel="noopener noreferrer" className="f-ulink">
-                        {s.label}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom bar */}
-              <div className="f-bottom" style={botStyle}>
-                <nav className="f-nav">
-                  {navLinks.map(link => (
-                    <Link key={link.href} href={link.href} className="f-nav-link">{link.label}</Link>
-                  ))}
-                </nav>
-                <div className="f-left">
-                  <svg className="f-logo-icon" viewBox="0 0 998 779" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M603.412 238.271L546.787 263.32L546.335 263.521L546.529 263.975L581.011 344.64L498.854 747.868L420.767 346.063L446.675 209.838L498.854 190.808L603.412 238.271Z" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M271.905 354.571L272.768 354.087L159.928 61.7441L402.059 347.097L428.325 475.869L411.417 500.358L411.257 500.591L411.373 500.849L457.426 602.599L489.747 776.827L201.442 476.791L1.96582 3.37891L271.905 354.571Z" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M796.142 476.793L507.838 776.827L540.127 602.601L586.213 500.849L586.33 500.591L586.169 500.358L569.229 475.869L595.495 347.095L837.657 61.7432L724.818 354.087L725.682 354.571L995.619 3.37891L796.142 476.793Z" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <span className="f-rights">© by raven — all rights reserved</span>
-                </div>
-              </div>
+            <div className="ft-right">
+              <svg
+                className="ft-logo-icon"
+                viewBox="0 0 998 779"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-label="by Raven"
+              >
+                <path
+                  d="M603.412 238.271L546.787 263.32L546.335 263.521L546.529 263.975L581.011 344.64L498.854 747.868L420.767 346.063L446.675 209.838L498.854 190.808L603.412 238.271Z"
+                  stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+                />
+                <path
+                  d="M271.905 354.571L272.768 354.087L159.928 61.7441L402.059 347.097L428.325 475.869L411.417 500.358L411.257 500.591L411.373 500.849L457.426 602.599L489.747 776.827L201.442 476.791L1.96582 3.37891L271.905 354.571Z"
+                  stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+                />
+                <path
+                  d="M796.142 476.793L507.838 776.827L540.127 602.601L586.213 500.849L586.33 500.591L586.169 500.358L569.229 475.869L595.495 347.095L837.657 61.7432L724.818 354.087L725.682 354.571L995.619 3.37891L796.142 476.793Z"
+                  stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+                />
+              </svg>
+              <span className="ft-rights">
+                &copy; by raven &mdash; all rights reserved
+              </span>
             </div>
           </div>
         </div>
