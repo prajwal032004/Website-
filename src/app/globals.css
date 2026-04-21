@@ -2282,6 +2282,8 @@ a.footer-seq-ulink:hover::after {
   .awards_section { padding: 5rem 6% 3rem; }
   .awards_title { text-align: center; margin-bottom: 3rem; font-size: clamp(2.2rem, 12vw, 4rem); }
   .dynamic-heading { font-size: clamp(2.2rem, 12vw, 4rem); padding: 2rem 0; }
+  .accordion_item_header { padding: 1.5rem 5%; gap: 1rem; }
+  .text-body-medium { font-size: 0.82rem; }
   .featured_project_info_name { font-size: clamp(1.8rem, 10vw, 4rem); }
   .oursound-text { font-size: clamp(1.8rem, 11vw, 4rem); white-space: normal; line-height: 1.1; }
   .footer-seq-body { font-size: 0.65rem; }
